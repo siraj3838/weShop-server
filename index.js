@@ -34,7 +34,7 @@ const client = new MongoClient(uri, {
     }
 });
 
-//  middle ware
+//  middle ware 
 const logger = (req, res, next) => {
     console.log('log info:', req.method, req.url);
     next();
