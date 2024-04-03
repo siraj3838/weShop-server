@@ -58,7 +58,7 @@ const verifyToken = (req, res, next) => {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect()
+        // await client.connect();
         const productCollection = client.db('weShopDB').collection('product');
         const userCollection = client.db('weShopDB').collection('user');
         const reviewCollection = client.db('weShopDB').collection('review');
