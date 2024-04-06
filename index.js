@@ -12,7 +12,7 @@ const port = process.env.PORT || 5000;
 
 app.use(cors({
     origin: [
-        'http://localhost:5174'
+        'http://localhost:5173'
         // 'https://libary-manage.web.app',
         // 'https://libary-manage.firebaseapp.com'
     ],
@@ -62,6 +62,7 @@ async function run() {
         const productCollection = client.db('weShopDB').collection('product');
         const userCollection = client.db('weShopDB').collection('user');
         const reviewCollection = client.db('weShopDB').collection('review');
+        const cartCollection = client.db('weShopDB').collection('cart');
 
 
         // jwt related
@@ -105,18 +106,34 @@ async function run() {
             const result = await productCollection.find().toArray();
             res.send(result);
         })
+        // Product Collection
+        app.post('/products', logger, async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
+        })
+        app.get('/products', logger, async (req, res) => {
+            const result = await productCollection.find().toArray();
+            res.send(result);
+        })
 
         // Product Collection
-        app.post('/reviews', logger, async (req, res) => {
-            const review = req.body;
-            const result = await reviewCollection.insertOne(review);
+        app.post('/carts', logger, async (req, res) => {
+            const cart = req.body;
+            const result = await cartCollection.insertOne(cart);
             res.send(result);
         })
-        app.get('/reviews', logger, async (req, res) => {
-            const result = await reviewCollection.find().toArray();
+        app.get('/carts', logger, async (req, res) => {
+            const result = await cartCollection.find().toArray();
             res.send(result);
         })
 
+        app.get('/cartsUser/:email', async(req, res)=>{
+            const email = req.params.email;
+            const query = {clientEmail: email};
+            const result = await cartCollection.find(query).toArray();
+            res.send(result);
+        })
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
