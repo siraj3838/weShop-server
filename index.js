@@ -120,6 +120,21 @@ async function run() {
         // Product Collection
         app.post('/carts', logger, async (req, res) => {
             const cart = req.body;
+            const query = { title: cart.title }
+            const existingCart = await cartCollection.findOne(query);
+            const quantity = cart?.totalProduct;
+            const total = quantity + existingCart?.totalProduct;
+            const filter = {_id: new ObjectId(existingCart?._id)};
+            const options = { upsert: true };
+            if (existingCart) {
+                const updateCart = {
+                    $set: {
+                        totalProduct: total,
+                    }
+                }
+                const result = await cartCollection.updateOne(filter, updateCart, options)
+                return res.send({result, message: 'success'})
+            }
             const result = await cartCollection.insertOne(cart);
             res.send(result);
         })
