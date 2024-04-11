@@ -107,49 +107,79 @@ async function run() {
             res.send(result);
         })
         // Product Collection
-        app.post('/products', logger, async (req, res) => {
-            const product = req.body;
-            const result = await productCollection.insertOne(product);
+        app.post('/reviews', logger, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
             res.send(result);
         })
-        app.get('/products', logger, async (req, res) => {
-            const result = await productCollection.find().toArray();
+        app.get('/reviews', logger, async (req, res) => {
+            const result = await reviewCollection.find().toArray();
             res.send(result);
         })
 
         // Product Collection
+        // app.post('/carts', logger, async (req, res) => {
+        //     const email = req.body.clientEmail;
+        //     const existProduct = await cartCollection.countDocuments({ clientEmail: email });
+        //     if (existProduct >= 4) {
+        //         return res.send({ message: 'removed' })
+        //     }
+        //     const newProduct = { ...req.body, clientEmail: email };
+        //     const result = await cartCollection.insertOne(newProduct);
+        //     res.send(result);
+        // });
+
         app.post('/carts', logger, async (req, res) => {
-            const cart = req.body;
-            const query = { title: cart.title }
-            const existingCart = await cartCollection.findOne(query);
-            const quantity = cart?.totalProduct;
-            const total = quantity + existingCart?.totalProduct;
-            const filter = {_id: new ObjectId(existingCart?._id)};
-            const options = { upsert: true };
-            if (existingCart) {
-                const updateCart = {
-                    $set: {
-                        totalProduct: total,
-                    }
-                }
-                const result = await cartCollection.updateOne(filter, updateCart, options)
-                return res.send({result, message: 'success'})
+            const { clientEmail, title } = req.body;
+
+            // Check if the clientEmail is valid
+            if (!clientEmail || clientEmail.length === 0) {
+                return res.status(400).json({ message: 'Invalid clientEmail' });
             }
-            const result = await cartCollection.insertOne(cart);
-            res.send(result);
-        })
+
+            // Check if the title is valid
+            if (!title || title.length === 0) {
+                return res.status(400).json({ message: 'Invalid title' });
+            }
+
+            // Check if the clientEmail has already selected the same title
+            const existingProduct = await cartCollection.findOne({ clientEmail, title });
+            if (existingProduct) {
+                return res.send({ message: 'removed' });
+            }
+
+            // Check if the clientEmail has selected more than 4 products
+            const productCount = await cartCollection.countDocuments({ clientEmail });
+            if (productCount >= 4) {
+                return res.status(409).json({ message: 'Client has already selected maximum number of products' });
+            }
+
+            // If all checks pass, insert the new product into the collection
+            const newProduct = { ...req.body };
+            const result = await cartCollection.insertOne(newProduct);
+            res.status(201).json(result);
+        });
+
+
         app.get('/carts', logger, async (req, res) => {
             const result = await cartCollection.find().toArray();
             res.send(result);
         })
 
-        app.get('/cartsUser/:email', async(req, res)=>{
+        app.get('/cartsUser/:email', async (req, res) => {
             const email = req.params.email;
-            const query = {clientEmail: email};
+            const query = { clientEmail: email };
             const result = await cartCollection.find(query).toArray();
             res.send(result);
         })
 
+        app.delete('/cartsUser/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await cartCollection.deleteOne(query);
+            res.send(result);
+        })
+        
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
