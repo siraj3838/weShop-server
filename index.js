@@ -1,3 +1,4 @@
+
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -63,6 +64,7 @@ async function run() {
         const userCollection = client.db('weShopDB').collection('user');
         const reviewCollection = client.db('weShopDB').collection('review');
         const cartCollection = client.db('weShopDB').collection('cart');
+        const orderCollection = client.db('weShopDB').collection('order');
 
 
         // jwt related
@@ -117,18 +119,6 @@ async function run() {
             res.send(result);
         })
 
-        // Product Collection
-        // app.post('/carts', logger, async (req, res) => {
-        //     const email = req.body.clientEmail;
-        //     const existProduct = await cartCollection.countDocuments({ clientEmail: email });
-        //     if (existProduct >= 4) {
-        //         return res.send({ message: 'removed' })
-        //     }
-        //     const newProduct = { ...req.body, clientEmail: email };
-        //     const result = await cartCollection.insertOne(newProduct);
-        //     res.send(result);
-        // });
-
         app.post('/carts', logger, async (req, res) => {
             const { clientEmail, title } = req.body;
 
@@ -179,7 +169,60 @@ async function run() {
             const result = await cartCollection.deleteOne(query);
             res.send(result);
         })
+
+        // Order Collection
+        app.post('/orders', async (req, res) => {
+            const payment = req.body;
+            const paymentResult = await orderCollection.insertOne(payment);
+
+            const query = {_id: {
+                $in: payment.cartId.map(id => new ObjectId(id))
+            }}
+
+            const deleteResult = await cartCollection.deleteMany(query)
+
+            console.log("payment info", payment);
+            res.send({paymentResult, deleteResult})
+        });
         
+        app.get('/ordersUser/:email', async (req, res) => {
+            try {
+                // Extract email and filter from request parameters and query
+                const { email } = req.params;
+                const { sort } = req.query;
+        
+                // Construct query to find orders for the specified email
+                const query = { orderEmail: email };
+        
+                // Construct options object for sorting
+                const options = {
+                    sort: {
+                        date: sort === 'asc' ? 1 : -1 // Invert sorting order if 'asc' is provided
+                    }
+                };
+        
+                // Fetch orders from the database
+                const result = await orderCollection.find(query, options).toArray();
+        
+                // Send the result as response
+                res.send(result);
+            } catch (error) {
+                console.error('Error fetching orders:', error);
+                res.status(500).json({ error: 'Internal server error' });
+            }
+        });
+        
+        app.get('/orders', async (req, res) => {
+            const filter = req.query;
+            const options = {
+                sort: {
+                    date: filter.sort == 'asc' ? -1 : 1
+                }
+            }
+            const result = await orderCollection.find(options).toArray();
+            res.send(result);
+        })
+
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
