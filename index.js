@@ -184,42 +184,43 @@ async function run() {
             console.log("payment info", payment);
             res.send({paymentResult, deleteResult})
         });
+        // specify email and sort
+        // app.get('/ordersUser/:email', async (req, res) => {
+        //     try {
+        //         // Extract email and filter from request parameters and query
+        //         const { email } = req.params;
+        //         const { sort } = req.query;
         
-        app.get('/ordersUser/:email', async (req, res) => {
-            try {
-                // Extract email and filter from request parameters and query
-                const { email } = req.params;
-                const { sort } = req.query;
+        //         // Construct query to find orders for the specified email
+        //         const query = { orderEmail: email };
         
-                // Construct query to find orders for the specified email
-                const query = { orderEmail: email };
+        //         // Construct options object for sorting
+        //         const options = {
+        //             sort: {
+        //                 date: sort === 'asc' ? 1 : -1 // Invert sorting order if 'asc' is provided
+        //             }
+        //         };
         
-                // Construct options object for sorting
-                const options = {
-                    sort: {
-                        date: sort === 'asc' ? 1 : -1 // Invert sorting order if 'asc' is provided
-                    }
-                };
+        //         // Fetch orders from the database
+        //         const result = await orderCollection.find(query, options).toArray();
         
-                // Fetch orders from the database
-                const result = await orderCollection.find(query, options).toArray();
-        
-                // Send the result as response
-                res.send(result);
-            } catch (error) {
-                console.error('Error fetching orders:', error);
-                res.status(500).json({ error: 'Internal server error' });
-            }
-        });
+        //         // Send the result as response
+        //         res.send(result);
+        //     } catch (error) {
+        //         console.error('Error fetching orders:', error);
+        //         res.status(500).json({ error: 'Internal server error' });
+        //     }
+        // });
         
         app.get('/orders', async (req, res) => {
             const filter = req.query;
+            const query = {};
             const options = {
                 sort: {
                     date: filter.sort == 'asc' ? -1 : 1
                 }
             }
-            const result = await orderCollection.find(options).toArray();
+            const result = await orderCollection.find(query,options).toArray();
             res.send(result);
         })
 
