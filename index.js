@@ -97,6 +97,16 @@ async function run() {
             const result = await userCollection.find().toArray();
             res.send(result);
         })
+        app.get('/adminUser/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await userCollection.findOne(query);
+            let admin = false;
+            if (user) {
+                admin = user?.roll === 'Admin';
+            }
+            res.send({ admin });
+        })
 
         // Product Collection
         app.post('/products', logger, async (req, res) => {
@@ -106,6 +116,12 @@ async function run() {
         })
         app.get('/products', logger, async (req, res) => {
             const result = await productCollection.find().toArray();
+            res.send(result);
+        })
+        app.delete('/products/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await productCollection.deleteOne(query);
             res.send(result);
         })
         // Product Collection
@@ -221,6 +237,31 @@ async function run() {
                 }
             }
             const result = await orderCollection.find(query,options).toArray();
+            res.send(result);
+        })
+
+        app.patch('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const order = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updatedOrder = {
+                $set: {
+                    order: 'approve',
+                }
+            }
+            const result = await orderCollection.updateOne(filter, updatedOrder);
+            res.send(result);
+        })
+        app.patch('/ordersComplete/:id', async (req, res) => {
+            const id = req.params.id;
+            const order = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updatedOrder = {
+                $set: {
+                    order: 'complete',
+                }
+            }
+            const result = await orderCollection.updateOne(filter, updatedOrder);
             res.send(result);
         })
 
