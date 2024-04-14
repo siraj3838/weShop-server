@@ -172,7 +172,7 @@ async function run() {
             res.send(result);
         })
 
-        app.get('/cartsUser/:email', async (req, res) => {
+        app.get('/cartsUser/:email', logger, async (req, res) => {
             const email = req.params.email;
             const query = { clientEmail: email };
             const result = await cartCollection.find(query).toArray();
@@ -187,7 +187,7 @@ async function run() {
         })
 
         // Order Collection
-        app.post('/orders', async (req, res) => {
+        app.post('/orders', logger, async (req, res) => {
             const payment = req.body;
             const paymentResult = await orderCollection.insertOne(payment);
 
@@ -228,7 +228,7 @@ async function run() {
         //     }
         // });
         
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', logger, async (req, res) => {
             const filter = req.query;
             const query = {};
             const options = {
@@ -240,7 +240,7 @@ async function run() {
             res.send(result);
         })
 
-        app.patch('/orders/:id', async (req, res) => {
+        app.patch('/orders/:id', logger, async (req, res) => {
             const id = req.params.id;
             const order = req.body;
             const filter = { _id: new ObjectId(id) };
@@ -252,7 +252,7 @@ async function run() {
             const result = await orderCollection.updateOne(filter, updatedOrder);
             res.send(result);
         })
-        app.patch('/ordersComplete/:id', async (req, res) => {
+        app.patch('/ordersComplete/:id', logger, async (req, res) => {
             const id = req.params.id;
             const order = req.body;
             const filter = { _id: new ObjectId(id) };
