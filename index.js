@@ -13,9 +13,9 @@ const port = process.env.PORT || 5000;
 
 app.use(cors({
     origin: [
-        // 'http://localhost:5173'
-        'https://weshop-98979.web.app',
-        'https://weshop-98979.firebaseapp.com'
+        'http://localhost:5173'
+        // 'https://weshop-98979.web.app',
+        // 'https://weshop-98979.firebaseapp.com'
     ],
     credentials: true
 }));
@@ -192,13 +192,20 @@ async function run() {
             const paymentResult = await orderCollection.insertOne(payment);
 
             const query = {_id: {
-                $in: payment.cartId.map(id => new ObjectId(id))
+                $in: payment?.cartId?.map(id => new ObjectId(id))
             }}
 
             const deleteResult = await cartCollection.deleteMany(query)
 
             console.log("payment info", payment);
             res.send({paymentResult, deleteResult})
+        });
+        // Order Collection
+        app.post('/ordersNow', logger, async (req, res) => {
+            const payment = req.body;
+            const paymentResult = await orderCollection.insertOne(payment);
+            // console.log("payment info", payment);
+            res.send(paymentResult)
         });
         // specify email and sort
         // app.get('/ordersUser/:email', async (req, res) => {
