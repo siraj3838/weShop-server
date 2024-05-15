@@ -207,7 +207,7 @@ async function run() {
             // console.log("payment info", payment);
             res.send(paymentResult)
         });
-        // specify email and sort
+        // specify email and sort filter
         // app.get('/ordersUser/:email', async (req, res) => {
         //     try {
         //         // Extract email and filter from request parameters and query
